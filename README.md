@@ -2,7 +2,7 @@
 
 An end-to-end analytics project on the public Olist Brazilian e-commerce dataset: raw CSVs are profiled and cleaned in Python, loaded into a layered PostgreSQL warehouse (`staging` → `analytics`), and served to a 3-page Power BI dashboard covering sales, products and sellers, and logistics.
 
-![Dasboard Home Page](power_bi\Sales.png)
+![Dasboard Home Page](power_bi/Sales.png)
 ---
 
 ## Table of Contents
@@ -95,15 +95,23 @@ The source files also include `product_category_name_translation.csv`, used to t
 ## 5. Architecture
 
 
+
 ```mermaid
 flowchart LR
-    A["Raw Olist CSVs<br/>data/original_data"] --> B["Python cleaning<br/>01_Data_Cleaning.ipynb"]
-    B --> C["Cleaned CSVs<br/>data/transformed_data"]
-    A --> D
-    C --> D[("PostgreSQL<br/>staging schema")]
-    D --> E[("PostgreSQL<br/>analytics schema")]
-    D --> F["Basic EDA<br/>02_BasicEDA.ipynb"]
-    E --> G["Power BI Dashboard"]
+    A["Raw Olist CSVs<br/>data/original_data"]
+    B["Python Data Cleaning<br/>01_Data_Cleaning.ipynb"]
+    C["Cleaned CSVs<br/>data/transformed_data"]
+    D[("PostgreSQL<br/>staging schema")]
+    E[("PostgreSQL<br/>analytics schema")]
+    F["Basic EDA<br/>02_BasicEDA.ipynb"]
+    G["Power BI Dashboard"]
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    D --> F
+    E --> G
 ```
 
 
@@ -186,100 +194,8 @@ Mirrors the source structure with keys and constraints: `geolocation`, `customer
 ### Analytics schema
 
 A dimensional model built for reporting:
+![Analytics](ERDs/03_Analytics.png)
 
-```mermaid
-erDiagram
-    dim_customer ||--o{ dim_order : places
-    dim_date ||--o{ dim_order : "purchase_date"
-    dim_order ||--o{ fact_order_items : contains
-    dim_product ||--o{ fact_order_items : "sold as"
-    dim_seller ||--o{ fact_order_items : fulfils
-    dim_order ||--o{ fact_payments : "paid by"
-    dim_order ||--o{ fact_reviews : receives
-
-    dim_customer {
-        varchar customer_id PK
-        varchar customer_unique_id
-        varchar zip_prefix
-        text city
-        text state
-        numeric latitude
-        numeric longitude
-    }
-
-    dim_date {
-        date date_key PK
-        int year
-        int quarter
-        int month
-        varchar month_name
-        varchar day_of_week
-    }
-
-    dim_product {
-        varchar product_id PK
-        varchar category_en
-        int description_length
-        int photos_qty
-        numeric weight_g
-        numeric volume_cubic_cm
-    }
-
-    dim_seller {
-        varchar seller_id PK
-        varchar zip_prefix
-        varchar city
-        varchar state
-        numeric latitude
-        numeric longitude
-    }
-
-    dim_order {
-        varchar order_id PK
-        varchar customer_id FK
-        varchar status
-        date purchase_date FK
-        time purchase_time
-        date delivered_date
-        time delivered_time
-        date estimated_delivery
-        int delivery_days
-        boolean is_late
-    }
-
-    fact_order_items {
-        varchar order_id PK, FK
-        int order_item_id PK
-        varchar product_id FK
-        varchar seller_id FK
-        numeric price
-        numeric freight_value
-    }
-
-    fact_payments {
-        varchar order_id PK, FK
-        int payment_sequential PK
-        varchar payment_type
-        int installments
-        numeric payment_value
-    }
-
-    fact_reviews {
-        varchar review_id PK
-        varchar order_id PK, FK
-        int review_score
-        timestamp answer_timestamp
-    }
-
-    geo_distribution {
-        text state
-        varchar zip_prefix
-        numeric state_lat
-        numeric state_long
-        varchar entity_id PK
-        text entity_type PK
-    }
-```
 
 | Table | Grain (one row per...) | Notes |
 |---|---|---|
@@ -310,23 +226,23 @@ erDiagram
 The dashboard ([power_bi/AnalysisReport.pbix](power_bi/AnalysisReport.pbix)) has three pages with shared filters for Year, Month, State and Product Category, plus a Sales / Order Count toggle.
 
 ### Entity-Relationship Diagram
-![Model](ERDs\04_PowerBI.png)
+![Analytics Data Model](ERDs/04_PowerBI.png)
 
 ### Sales
 
-![Sales page](power_bi\Sales.png)
+![Sales page](power_bi/Sales.png)
 
 KPI cards (Total Revenue, Total Orders, Average Order Value, Average Rating), YoY growth, monthly sales trends by year, sales by state, and an hour-by-weekday activity heatmap.
 
 ### Products and Sellers
 
-![Products and Sellers page](power_bi\Products_And_Sellers.png)
+![Products and Sellers page](power_bi/Products_And_Sellers.png)
 
 KPI cards (Active Sellers, Active Customers, Product Categories, Total Products), seller leaderboard, top product categories, seller performance scatter (orders vs sales), and active sellers over time.
 
 ### Logistics
 
-![Logistics page](power_bi\Logistics.png)
+![Logistics page](power_bi/Logistics.png)
 
 KPI cards (Average Freight Value, Average Delivery Days, Average Delivery Delay), delayed vs on-time share, payment method usage, review score distribution for delayed vs on-time orders, and customer and seller location maps.
 
@@ -359,7 +275,7 @@ KPI cards (Average Freight Value, Average Delivery Days, Average Delivery Delay)
 
 > Developed on Windows with PostgreSQL, pgAdmin and Power BI Desktop. Power BI Desktop is Windows-only.
 
-> If you want to see the Power BI Dashboard only - just download [power_bi\AnalysisReport.pbix](power_bi/AnalysisReport.pbix) and open in your power bi desktop
+> If you want to see the Power BI Dashboard only - just download [power_bi/AnalysisReport.pbix](power_bi/AnalysisReport.pbix) and open in your power bi desktop
 
 ### Prerequisites
 
