@@ -21,8 +21,6 @@ An end-to-end analytics project on the public Olist Brazilian e-commerce dataset
 12. [Assumptions and Limitations](#12-assumptions-and-limitations)
 13. [Key Learnings](#13-key-learnings)
 14. [Future Improvements](#14-future-improvements)
-15. [Acknowledgments](#15-acknowledgments)
-16. [Author](#16-author)
 
 ---
 
